@@ -57,8 +57,8 @@ The app also features **Pie Charts**, **Daily Bar Charts**, and intuitive UI for
 
 1. **Clone this repository:**
    ```bash
-   git clone https://github.com/Kalana-S/Expense-Tracker-App-Flutter.git
-   cd Expense-Tracker-App-Flutter
+   git clone https://github.com/Kalana-S/Expense-Tracker-App.git
+   cd Expense-Tracker-App
 
 2. **Get all dependencies:**
    ```bash
