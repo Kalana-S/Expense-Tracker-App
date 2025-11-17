@@ -3,7 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../models/expense_model.dart';
 import '../widgets/expenses_pie_chart.dart';
 import '../widgets/expenses_daily_bar_chart.dart';
-import 'add_expense_screen.dart';
+import '../db/expense_db.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -24,7 +24,6 @@ class HomeScreen extends StatelessWidget {
           return SingleChildScrollView(
             child: Column(
               children: [
-                // Total
                 Container(
                   width: double.infinity,
                   color: Colors.green.shade50,
@@ -38,13 +37,11 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ),
 
-                // Pie chart (category distribution for the week)
                 Padding(
                   padding: const EdgeInsets.all(12.0),
                   child: ExpensesPieChart(expenses: expenses),
                 ),
 
-                // Daily bar chart (Mon - Sun). Interactive.
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
                   child: ExpensesDailyBarChart(expenses: expenses),
@@ -52,13 +49,13 @@ class HomeScreen extends StatelessWidget {
 
                 const SizedBox(height: 12),
 
-                // Expense list below
                 ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: expenses.length,
                   itemBuilder: (context, index) {
                     final e = expenses[index];
+
                     return Card(
                       margin: const EdgeInsets.symmetric(
                         horizontal: 12,
@@ -69,7 +66,58 @@ class HomeScreen extends StatelessWidget {
                         subtitle: Text(
                           '${e.category} • ${e.date.toString().split(' ')[0]}',
                         ),
-                        trailing: Text('Rs ${e.amount.toStringAsFixed(2)}'),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text('Rs ${e.amount.toStringAsFixed(2)}'),
+                            const SizedBox(width: 10),
+
+                            IconButton(
+                              icon: const Icon(Icons.edit, color: Colors.blue),
+                              onPressed: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  '/edit-expense',
+                                  arguments: e,
+                                );
+                              },
+                            ),
+
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () async {
+                                final confirm = await showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text("Delete Expense"),
+                                    content: Text(
+                                      "Are you sure you want to delete '${e.title}'?",
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.pop(context, false),
+                                        child: const Text("Cancel"),
+                                      ),
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.pop(context, true),
+                                        child: const Text(
+                                          "Delete",
+                                          style: TextStyle(color: Colors.red),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+
+                                if (confirm == true) {
+                                  await ExpenseDB.deleteExpense(e.id);
+                                }
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -79,6 +127,7 @@ class HomeScreen extends StatelessWidget {
           );
         },
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.pushNamed(context, '/add-expense');

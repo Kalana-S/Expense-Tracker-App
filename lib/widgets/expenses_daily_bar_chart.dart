@@ -7,7 +7,6 @@ class ExpensesDailyBarChart extends StatelessWidget {
   final List<Expense> expenses;
   const ExpensesDailyBarChart({super.key, required this.expenses});
 
-  // ordered weekday list starting with Monday
   static const List<String> weekdays = [
     'Monday',
     'Tuesday',
@@ -18,7 +17,6 @@ class ExpensesDailyBarChart extends StatelessWidget {
     'Sunday',
   ];
 
-  // group expenses by weekday (Monday..Sunday)
   Map<String, List<Expense>> _groupByWeekday() {
     final map = {for (var d in weekdays) d: <Expense>[]};
     for (var e in expenses) {
@@ -32,7 +30,6 @@ class ExpensesDailyBarChart extends StatelessWidget {
     return map;
   }
 
-  // get totals list in same order as weekdays
   List<double> _dailyTotals(Map<String, List<Expense>> grouped) {
     return weekdays.map((d) {
       final list = grouped[d] ?? [];
@@ -40,7 +37,6 @@ class ExpensesDailyBarChart extends StatelessWidget {
     }).toList();
   }
 
-  // helper to show bottom sheet with day details
   void _showDayDetails(BuildContext context, String day, List<Expense> list) {
     showModalBottomSheet(
       context: context,
@@ -87,83 +83,126 @@ class ExpensesDailyBarChart extends StatelessWidget {
   Widget build(BuildContext context) {
     final grouped = _groupByWeekday();
     final totals = _dailyTotals(grouped);
-    final maxY = (totals.isEmpty)
+
+    final maxY = totals.isEmpty
         ? 100.0
-        : (totals.reduce((a, b) => a > b ? a : b) * 1.2).clamp(
+        : (totals.reduce((a, b) => a > b ? a : b) * 1.4).clamp(
             10.0,
             double.infinity,
           );
 
+    List<Widget> _buildValueLabels() {
+      return List.generate(7, (i) {
+        final value = totals[i];
+        final text = value == 0 ? '' : value.toStringAsFixed(0);
+        return Expanded(
+          child: Center(
+            child: Text(
+              text,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+        );
+      });
+    }
+
     return SizedBox(
-      height: 300,
+      height: 360,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
         child: Card(
           elevation: 2,
           child: Padding(
             padding: const EdgeInsets.all(12.0),
-            child: BarChart(
-              BarChartData(
-                alignment: BarChartAlignment.spaceAround,
-                maxY: maxY,
-                barTouchData: BarTouchData(
-                  enabled: true,
-                  touchCallback: (event, response) {
-                    if (response == null || response.spot == null) return;
-                    final groupIndex = response.spot!.touchedBarGroupIndex;
-                    if (groupIndex < 0 || groupIndex >= weekdays.length) return;
-                    final day = weekdays[groupIndex];
-                    final list = grouped[day] ?? [];
-                    _showDayDetails(context, day, list);
-                  },
-                ),
-                titlesData: FlTitlesData(
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: true, reservedSize: 40),
-                  ),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      getTitlesWidget: (value, meta) {
-                        final idx = value.toInt();
-                        if (idx < 0 || idx >= weekdays.length)
-                          return const SizedBox.shrink();
-                        final short = weekdays[idx].substring(
-                          0,
-                          3,
-                        ); // Mon, Tue...
-                        return SideTitleWidget(
-                          child: Text(short),
-                          axisSide: meta.axisSide,
+            child: Column(
+              children: [
+                SizedBox(height: 20, child: Row(children: _buildValueLabels())),
+                const SizedBox(height: 8),
+
+                Expanded(
+                  child: BarChart(
+                    BarChartData(
+                      maxY: maxY,
+                      alignment: BarChartAlignment.spaceAround,
+                      barTouchData: BarTouchData(
+                        enabled: true,
+                        touchCallback: (event, response) {
+                          if (response == null || response.spot == null) return;
+                          final groupIndex =
+                              response.spot!.touchedBarGroupIndex;
+                          if (groupIndex < 0 || groupIndex >= weekdays.length)
+                            return;
+                          final day = weekdays[groupIndex];
+                          final list = grouped[day] ?? [];
+                          _showDayDetails(context, day, list);
+                        },
+                      ),
+                      titlesData: FlTitlesData(
+                        leftTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 40,
+                          ),
+                        ),
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 30,
+                            getTitlesWidget: (value, meta) {
+                              final idx = value.toInt();
+                              if (idx < 0 || idx >= weekdays.length)
+                                return const SizedBox.shrink();
+                              const short = [
+                                "Mon",
+                                "Tue",
+                                "Wed",
+                                "Thu",
+                                "Fri",
+                                "Sat",
+                                "Sun",
+                              ];
+                              return Padding(
+                                padding: const EdgeInsets.only(top: 6.0),
+                                child: Text(
+                                  short[idx],
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        topTitles: AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                        rightTitles: AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                      ),
+                      gridData: FlGridData(show: true),
+                      borderData: FlBorderData(show: false),
+                      barGroups: List.generate(7, (index) {
+                        final value = totals[index];
+                        return BarChartGroupData(
+                          x: index,
+                          barRods: [
+                            BarChartRodData(
+                              toY: value,
+                              width: 20,
+                              borderRadius: BorderRadius.circular(6),
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ],
+                          showingTooltipIndicators: [0],
                         );
-                      },
-                      reservedSize: 30,
+                      }),
                     ),
                   ),
-                  topTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  rightTitles: AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
                 ),
-                gridData: FlGridData(show: false),
-                borderData: FlBorderData(show: false),
-                barGroups: List.generate(weekdays.length, (i) {
-                  return BarChartGroupData(
-                    x: i,
-                    barRods: [
-                      BarChartRodData(
-                        toY: totals[i],
-                        width: 18,
-                        borderRadius: BorderRadius.circular(4),
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ],
-                    showingTooltipIndicators: [0],
-                  );
-                }),
-              ),
+              ],
             ),
           ),
         ),

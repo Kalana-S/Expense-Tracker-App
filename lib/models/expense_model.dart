@@ -28,6 +28,21 @@ class Expense {
     required this.category,
   });
 
-  // convenience getter to get weekday name (e.g. "Monday")
   String get weekday => DateFormat('EEEE').format(date);
+
+  Expense copyWith({
+    String? id,
+    String? title,
+    double? amount,
+    DateTime? date,
+    String? category,
+  }) {
+    return Expense(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      amount: amount ?? this.amount,
+      date: date ?? this.date,
+      category: category ?? this.category,
+    );
+  }
 }

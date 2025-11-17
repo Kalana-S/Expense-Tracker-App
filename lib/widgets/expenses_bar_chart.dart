@@ -13,7 +13,6 @@ class ExpensesBarChart extends StatelessWidget {
       return const Center(child: Text("No expenses to show"));
     }
 
-    // Group expenses by category
     final Map<String, double> categoryTotals = {};
 
     for (var expense in expenses) {

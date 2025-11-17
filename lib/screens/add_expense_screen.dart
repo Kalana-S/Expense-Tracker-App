@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import '../models/expense_model.dart';
+import '../db/expense_db.dart';
 
 class AddExpenseScreen extends StatefulWidget {
   const AddExpenseScreen({super.key});
@@ -12,7 +13,7 @@ class AddExpenseScreen extends StatefulWidget {
 class _AddExpenseScreenState extends State<AddExpenseScreen> {
   final _titleController = TextEditingController();
   final _amountController = TextEditingController();
-  String selectedCategory = "Food"; // default category
+  String selectedCategory = "Food";
 
   final List<String> categories = [
     "Food",
@@ -30,7 +31,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     super.dispose();
   }
 
-  void saveExpense() {
+  Future<void> saveExpense() async {
     final title = _titleController.text.trim();
     final amount = double.tryParse(_amountController.text.trim());
 
@@ -41,7 +42,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       return;
     }
 
-    // generate a simple unique id (timestamp based)
     final id = DateTime.now().microsecondsSinceEpoch.toString();
 
     final expense = Expense(
@@ -52,9 +52,13 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       date: DateTime.now(),
     );
 
-    Hive.box<Expense>('expenses').put(expense.id, expense);
+    await ExpenseDB.addExpense(expense);
 
-    Navigator.pop(context); // go back to home
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text("Expense saved")));
+
+    Navigator.pop(context);
   }
 
   @override
