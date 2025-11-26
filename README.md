@@ -78,7 +78,7 @@ The app also features **Pie Charts**, **Daily Bar Charts**, and intuitive UI for
 
 1. Tap the **Add (+)** button to record a new expense.
 2. Enter the expense title, amount, category, and date.
-3. View expenses in the Home Screen list.
+3. **View** expenses in the Home Screen list.
 4. Use the **Edit** (✏️) or **Delete** (🗑️) buttons on any expense.
 5. Track spending visually using Pie Chart and Bar Chart.
 
