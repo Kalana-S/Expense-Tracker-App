@@ -1,6 +1,6 @@
 # 💰 Expense Tracker App (Flutter)
 
-**Expense Tracker App** is a simple, fast, and elegant Flutter application that helps users **track their daily expenses**.
+**Expense Tracker App** is a simple, fast, and elegant **Flutter** application that helps users **track their daily expenses**.
 It includes powerful visual insights, supports CRUD operations, and stores all data locally using **Hive NoSQL database**.
 The app also features **Pie Charts**, **Daily Bar Charts**, and intuitive UI for a smooth user experience.
 
